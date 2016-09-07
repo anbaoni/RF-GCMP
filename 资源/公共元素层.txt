@@ -1,0 +1,50 @@
+*** Settings ***
+Library           Selenium2Library
+Library           OperatingSystem
+
+*** Keywords ***
+关闭driver
+    ${RunOutput}=    OperatingSystem.Run    taskkill /F /IM chromedriver.exe
+    log    ${RunOutput}
+
+打开浏览器
+    [Arguments]    ${url}
+    Open Browser    ${url}    chrome
+    Maximize Browser Window
+
+输入用户名
+    [Arguments]    ${username}
+    Input Text    id=inputEmail3    ${username}
+
+输入密码
+    [Arguments]    ${pwd}
+    Input Text    id=inputPassword3    ${pwd}
+
+点击登录
+    [Arguments]    ${loginbotton}    ${pagefeature}    # [locator]
+    [Documentation]    loginbotton : locator
+    ...    登录按钮。
+    ...
+    ...    pagefeature : locator
+    ...    成功登录后的页面特征。
+    click button    ${loginbotton}
+    Comment    sleep    5
+    Wait Until Page Contains Element    ${pagefeature}    5
+
+校验标题
+    [Arguments]    ${sysname}
+    [Documentation]    sysname : Text
+    ...    成功登录后的页面特征值，例如：系统名称
+    ${a}    Get Title
+    Should Contain    ${a}    ${sysname}
+    log    ${a}
+
+关闭浏览器
+    Close Browser
+
+登录系统
+    打开浏览器    http://172.16.122.175:8080
+    输入用户名    admin
+    输入密码    000000
+    点击登录    Xpath=//*[@id="loginForm"]/input    xpath=/html/body/header/nav/a
+    校验标题    集团客户管理系统

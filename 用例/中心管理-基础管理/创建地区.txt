@@ -1,0 +1,128 @@
+*** Settings ***
+Suite Teardown    关闭driver
+Test Teardown
+Resource          ../../资源/公共元素层.txt
+Resource          ../../资源/中心管理-基础管理.txt
+Library           Selenium2Library
+
+*** Test Cases ***
+登录
+    打开浏览器    http://172.16.122.175:8080
+    输入用户名    admin
+    输入密码    000000
+    点击登录    Xpath=//*[@id="loginForm"]/input    xpath=/html/body/header/nav/a
+    校验标题    集团客户管理系统
+
+进入基础管理
+    Comment    检查是否已进入中心管理-基础管理，未进入则单击相关按钮进入
+    Comment    Element Should Contain    xpath=//*[@id="side-menu"]/li[2]/ul/li[1]/a    地区    未进入中心管理-基础管理
+    进入[中心管理]-{基础管理}
+    [Teardown]
+
+进入地区管理
+    单击[中心管理]-{地区管理}
+    Sleep    500ms
+    Comment    检查是否进入地区管理页面
+    Element Should Contain    xpath=//*[@id="page-wrapper-admin"]/aside/section[1]/h1    地区管理    打开中心管理-基础管理-地区管理失败
+    [Teardown]
+
+创建地区按钮检查
+    单击[中心管理]-[地区管理]-{创建地区}按钮
+    Sleep    500ms
+    Comment    检查是否进入创建页面
+    Element Should Contain    xpath=//*[@id="page-wrapper-admin"]/aside/section[1]/h1    新建地区    未进入新建地区页面
+    [Teardown]
+
+新建地区-地区名称必填性检查1
+    Log    1、未输入名称，单击创建按钮
+    Click Element    xpath=//*[@id="new-district-form"]/div[2]/div/div/button[1]
+    Comment    检查校验提示信息
+    Element Should Contain    xpath=//*[@id="new-district-form"]/div[1]/div[1]/div/small[1]    名称不能为空    名称可以为空
+    Sleep    0.5
+    Log    2、名称字段输入空格
+    新建地区界面-输入名称字段    ${SPACE}
+    Element Should Contain    xpath=//*[@id="new-district-form"]/div[1]/div[1]/div/small[1]    名称不能为空    名称可以输入空格
+    Sleep    0.5
+    [Teardown]
+
+新建地区-地区名称必填性检查2
+    [Setup]
+    Log    1、未输入名称，单击创建按钮
+    Click Element    xpath=//*[@id="new-district-form"]/div[2]/div/div/button[1]
+    Sleep    0.5
+    ${info}    Get Text    xpath=//*[@id="new-district-form"]/div[1]/div[1]/div/small[1]
+    Log    ${info}
+    Sleep    0.5
+    Log    2、名称字段输入空格
+    新建地区界面-输入名称字段    ${SPACE}
+    ${info}    Get Text    xpath=//*[@id="new-district-form"]/div[1]/div[1]/div/small[1]
+    Log    ${info}
+    Sleep    0.5
+    [Teardown]
+
+新建地区-地区名称数据类型检查
+    新建地区界面-输入名称字段    shanghai
+    Sleep    500ms
+    Comment    检查是否进入创建页面
+    Element Should Contain    xpath=//*[@id="page-wrapper-admin"]/aside/section[1]/h1    新建地区    未进入新建地区页面
+    [Teardown]
+
+新建地区-天气城市选择
+    log    选择一个天气城市
+    新建地区界面-选择天气城市    深圳
+    log    不选择天气城市时
+    ${tr1}    获取已存在的地区数量
+    新建地区界面-输入名称字段    上海
+    新建地区界面-输入标识字段    021
+    新建地区界面-输入描述字段    0
+    单击新建地区页面-创建按钮
+    检查是否进入地区管理页面
+    ${tr2}    获取已存在的地区数量
+    检查新地区是否创建成功    ${tr1}    ${tr2}
+    [Teardown]
+
+新建地区-创建按钮检查
+    log    必填字段为空时
+    单击新建地区页面-创建按钮
+    检查是否进入地区管理页面
+    log    不选择天气城市时
+    新建地区界面-输入名称字段    上海
+    新建地区界面-输入标识字段    021
+    新建地区界面-输入描述字段    0
+    单击新建地区页面-创建按钮
+    检查是否进入地区管理页面
+    [Teardown]
+
+试验
+    ${tr1}    Set Variable    10
+    ${tr2}    Set Variable    10
+    comment    Run Keyword If    ${tr2}-${tr1}==1    log    创建成功
+    ...    ELSE    log    创建失败
+    检查新地区是否创建成功    ${tr1}    ${tr2}
+    [Teardown]
+
+试验2-获取下拉框的元素并打印
+    打开浏览器    http://120.76.221.123:9091/
+    输入用户名    admin
+    输入密码    ~simware88admin
+    点击登录    Xpath=//*[@id="loginForm"]/input    xpath=/html/body/header/nav/a
+    sleep    5
+    Click Element    Xpath=//*[@id="side-menu"]/li[3]/a
+    sleep    2
+    Click Element    Xpath=//*[@id="side-menu"]/li[3]/ul/li[1]/a
+    sleep    3
+    @{test}    Get Webelements    xpath=//select[@name="goodsType"]//option
+    log many    @{test}
+    ${x}    get matching xpath count    xpath=//select[@name="goodsType"]//option
+    [Teardown]
+
+试验3
+    Select From List By LABEL    xpath=//*[@id="form-weatherCity"]    广州
+    sleep    2
+    ${a}    Get Selected List Label    xpath=//*[@id="form-weatherCity"]
+    log    ${a}
+    ${x}    Set Variable    pear
+    ${y}    Set Variable    apple
+    run keyword if    '${x}'=='${y}'    log    成功
+    ...    ELSE    log    失败
+    [Teardown]

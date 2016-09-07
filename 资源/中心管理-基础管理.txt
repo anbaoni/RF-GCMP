@@ -1,0 +1,67 @@
+*** Settings ***
+Library           Selenium2Library
+Library           OperatingSystem
+
+*** Keywords ***
+进入[中心管理]-{基础管理}
+    Comment    检查是否已进入中心管理-基础管理，未进入则单击相关按钮进入
+    ${a}    Get Text    xpath=//*[@id="side-menu"]/li[2]/ul/li[1]/a
+    ${a}    Evaluate    '${a}'.strip()
+    Run Keyword If    '${a}'=='地区'    log    已进入中心管理-基础管理
+    ...    ELSE    Click Element    xpath=//*[@id="side-menu"]/li[2]/a
+    Element Should Contain    xpath=//*[@id="side-menu"]/li[2]/ul/li[1]/a    地区    未进入中心管理-基础管理
+    [Teardown]
+
+单击[中心管理]-{地区管理}
+    Click Element    xpath=//*[@id="side-menu"]/li[2]/ul/li[1]/a
+
+单击[中心管理]-[地区管理]-{创建地区}按钮
+    Click Element    xpath=//*[@id="page-wrapper-admin"]/aside/section[2]/div/div[2]/div/div/a
+
+新建地区界面-输入名称字段
+    [Arguments]    ${地区名称}    # [Text]
+    Click Element    xpath=//*[@id="form-name"]
+    Input Text    xpath=//*[@id="form-name"]    ${地区名称}
+
+新建地区界面-输入标识字段
+    [Arguments]    ${地区标识}    # [Text]
+    comment    Click Element    xpath=//*[@id="form-identifier"]
+    Input Text    xpath=//*[@id="form-identifier"]    ${地区标识}
+
+新建地区界面-输入描述字段
+    [Arguments]    ${地区标识}    # [Text]
+    comment    Click Element    xpath=//*[@id="form-description"]
+    Input Text    xpath=//*[@id="form-description"]    ${地区标识}
+
+新建地区界面-选择天气城市
+    [Arguments]    ${weathercity}    # [text]
+    [Documentation]    cityvalue：integer
+    ...    天气城市的value值。以系统中天气城市的具体情况而定。
+    ${n}    get matching xpath count    xpath=//select[@name="weatherCity"]//option
+    run keyword if    ${n}<2    log    无可用的天气城市
+    ...    ELSE    Select From List By Label    xpath=//*[@id="form-weatherCity"]    ${weathercity}
+    log    ${weathercity}
+    sleep    2
+    ${a}    Get Selected List Label    xpath=//*[@id="form-weatherCity"]
+    log    ${a}
+    run keyword if    '${a}'=='${weathercity}'    log    选择成功
+    ...    ELSE    log    选择的城市不存在
+
+单击新建地区页面-创建按钮
+    Click Element    xpath=//*[@id="new-district-form"]/div[2]/div/div/button[1]
+
+检查是否进入地区管理页面
+    ${a}    Get Text    xpath=//*[@id="page-wrapper-admin"]/aside/section[1]/h1
+    Run Keyword If    '${a}'=='地区管理'    log    已进入中心管理-地区管理
+    ...    ELSE    未进入中心管理-地区管理
+
+检查新地区是否创建成功
+    [Arguments]    @{number}    # int
+    [Documentation]    number:创建前与创建后的地区个数
+    ...    int
+    Run Keyword If    ${number[1]}-${number[0]}==1    log    创建成功
+    ...    ELSE IF    ${number[1]}-${number[0]}==0    log    没有新数据生成
+    ...    ELSE    log    其它错误
+
+获取已存在的地区数量
+    ${trcount}=    get matching xpath count    xpath=//table[@class="table"]//tr
